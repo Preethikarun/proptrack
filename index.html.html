@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#080f1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>PropTrack NZ</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080f1a; --s1:#0f1825; --s2:#162033; --s3:#1c2a40;
+  --border:rgba(255,255,255,0.06); --border2:rgba(255,255,255,0.1);
+  --gold:#e8b84b; --teal:#2ecfa8; --rose:#e8534b;
+  --sky:#4b9be8; --lavender:#9b8be8; --peach:#e8944b;
+  --text:#edf0f5; --muted:#5e7080; --muted2:#8a9db0;
+  --r:16px; --nav:66px;
+  --lt:#2ecfa8;   /* long-term accent */
+  --bnb:#e8b84b;  /* airbnb accent */
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);color:var(--text);
+  max-width:430px;margin:0 auto;
+  display:flex;flex-direction:column;
+  height:100dvh;overflow:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 100% -10%, rgba(46,207,168,0.06) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 40% at 0% 100%, rgba(232,184,75,0.05) 0%,transparent 60%);
+}
+
+/* SCROLL */
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;position:relative;z-index:1;padding-bottom:calc(var(--nav) + 20px);}
+.scroll::-webkit-scrollbar{display:none;}
+
+/* PAGES */
+.page{display:none;animation:up .22s ease;}
+.page.active{display:block;}
+@keyframes up{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:none;}}
+
+/* PAGE HEADER */
+.ph{padding:48px 18px 14px;background:linear-gradient(180deg,rgba(8,15,26,.98) 55%,transparent);position:sticky;top:0;z-index:10;}
+.ph-row{display:flex;align-items:flex-end;justify-content:space-between;}
+.ph h1{font-family:'Fraunces',serif;font-size:26px;font-weight:700;line-height:1;}
+.ph p{font-size:11px;color:var(--muted2);margin-top:3px;}
+
+/* BOTTOM NAV */
+.bnav{height:var(--nav);background:rgba(8,15,26,.97);backdrop-filter:blur(24px);border-top:1px solid var(--border);display:flex;align-items:stretch;flex-shrink:0;z-index:20;padding-bottom:env(safe-area-inset-bottom);}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--muted);cursor:pointer;font-family:inherit;font-size:9px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;transition:color .2s;position:relative;}
+.nb svg{width:19px;height:19px;transition:transform .2s;}
+.nb.active{color:var(--gold);}
+.nb.active svg{transform:scale(1.12);}
+.nb-pip{position:absolute;top:9px;right:calc(50% - 15px);width:6px;height:6px;border-radius:50%;background:var(--rose);display:none;}
+.nb-pip.on{display:block;}
+
+/* FAB */
+.fab{position:fixed;bottom:calc(var(--nav) + 12px);right:14px;width:48px;height:48px;border-radius:13px;background:var(--gold);color:var(--bg);border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(232,184,75,.3);display:flex;align-items:center;justify-content:center;z-index:15;transition:transform .15s;}
+.fab:active{transform:scale(.88);}
+
+/* CARDS & SECTIONS */
+.sec{padding:0 15px;margin-bottom:14px;}
+.sec-lbl{font-size:9px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--muted);margin-bottom:9px;}
+.card{background:var(--s1);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;}
+
+/* STAT GRID */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:0 15px;margin-bottom:14px;}
+.sc{background:var(--s1);border-radius:var(--r);border:1px solid var(--border);padding:13px;position:relative;overflow:hidden;}
+.sc::after{content:'';position:absolute;bottom:-16px;right:-16px;width:56px;height:56px;border-radius:50%;opacity:.08;}
+.sc.g::after{background:var(--gold);}
+.sc.t::after{background:var(--teal);}
+.sc.r::after{background:var(--rose);}
+.sc.b::after{background:var(--sky);}
+.sc-lbl{font-size:9px;font-weight:600;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);}
+.sc-val{font-family:'Fraunces',serif;font-size:22px;font-weight:600;margin-top:4px;line-height:1;}
+.sc.g .sc-val{color:var(--gold);}
+.sc.t .sc-val{color:var(--teal);}
+.sc.r .sc-val{color:var(--rose);}
+.sc.b .sc-val{color:var(--sky);}
+.sc-sub{font-size:10px;color:var(--muted);margin-top:3px;}
+
+/* PROPERTY CARDS */
+.prop-card{margin:0 15px 10px;border-radius:var(--r);border:1px solid var(--border);overflow:hidden;}
+.prop-top{padding:14px 14px 10px;display:flex;gap:12px;align-items:flex-start;}
+.prop-badge-type{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:3px 8px;border-radius:20px;margin-bottom:6px;}
+.prop-badge-type.lt{background:rgba(46,207,168,.12);color:var(--lt);}
+.prop-badge-type.bnb{background:rgba(232,184,75,.12);color:var(--bnb);}
+.prop-emoji{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.prop-name{font-family:'Fraunces',serif;font-size:14px;font-weight:600;line-height:1.2;}
+.prop-addr{font-size:11px;color:var(--muted2);margin-top:2px;}
+.prop-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;}
+.prop-pm{padding:9px 14px;background:rgba(255,255,255,.03);border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.prop-pm-icon{font-size:13px;}
+.prop-pm-text{font-size:11px;color:var(--muted2);}
+.prop-pm-name{font-size:11px;font-weight:600;color:var(--text);}
+
+/* LIST ITEMS */
+.li{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);transition:background .15s;}
+.li:last-child{border-bottom:none;}
+.li:active{background:rgba(255,255,255,.02);}
+.li-icon{width:34px;height:34px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.li-body{flex:1;min-width:0;}
+.li-title{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.li-sub{font-size:11px;color:var(--muted2);margin-top:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.li-right{text-align:right;flex-shrink:0;}
+.li-amt{font-family:'Fraunces',serif;font-size:15px;font-weight:600;}
+.li-date{font-size:10px;color:var(--muted);margin-top:2px;}
+
+/* BADGES */
+.bdg{display:inline-flex;align-items:center;font-size:9px;font-weight:700;letter-spacing:.3px;padding:2px 7px;border-radius:20px;white-space:nowrap;}
+.bdg-gold{background:rgba(232,184,75,.12);color:var(--gold);}
+.bdg-teal{background:rgba(46,207,168,.12);color:var(--teal);}
+.bdg-rose{background:rgba(232,83,75,.12);color:var(--rose);}
+.bdg-sky{background:rgba(75,155,232,.12);color:var(--sky);}
+.bdg-peach{background:rgba(232,148,75,.12);color:var(--peach);}
+.bdg-lav{background:rgba(155,139,232,.12);color:var(--lavender);}
+.bdg-muted{background:rgba(255,255,255,.06);color:var(--muted2);}
+
+/* STATUS DOT */
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.dot-paid,.dot-done{background:var(--teal);}
+.dot-pending,.dot-progress{background:var(--gold);box-shadow:0 0 4px rgba(232,184,75,.5);}
+.dot-overdue,.dot-open{background:var(--rose);box-shadow:0 0 4px rgba(232,83,75,.5);}
+
+/* TABS */
+.tabs{display:flex;gap:6px;padding:0 15px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:none;font-family:inherit;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .18s;}
+.tab.active{background:var(--gold);color:var(--bg);border-color:var(--gold);}
+
+/* PROGRESS */
+.prog{background:rgba(255,255,255,.05);border-radius:3px;height:4px;overflow:hidden;margin-top:6px;}
+.prog-bar{height:100%;border-radius:3px;}
+
+/* INCOME/EXPENSE SPLIT */
+.split-bar{margin:0 15px 14px;background:var(--s1);border-radius:var(--r);border:1px solid var(--border);padding:14px;}
+.split-lbl{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.split-track{display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px;margin-bottom:8px;}
+.split-in{background:var(--teal);border-radius:4px;transition:width .5s ease;}
+.split-out{background:var(--rose);opacity:.75;border-radius:4px;transition:width .5s ease;}
+.split-foot{display:flex;justify-content:space-between;}
+.split-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2);}
+.split-dot{width:7px;height:7px;border-radius:50%;}
+
+/* SUM BAR */
+.sum-bar{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-top:1px solid var(--border);background:var(--s1);border-radius:0 0 var(--r) var(--r);border:1px solid var(--border);border-top:none;}
+.sum-bar span{font-size:11px;color:var(--muted2);}
+.sum-bar strong{font-family:'Fraunces',serif;font-size:17px;font-weight:600;}
+
+/* SECTION DIVIDER */
+.prop-divider{display:flex;align-items:center;gap:10px;padding:6px 15px 10px;}
+.prop-divider-line{flex:1;height:1px;background:var(--border);}
+.prop-divider-lbl{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+.prop-divider-lbl.lt{background:rgba(46,207,168,.1);color:var(--lt);}
+.prop-divider-lbl.bnb{background:rgba(232,184,75,.1);color:var(--bnb);}
+
+/* INCOME CARD (Airbnb) */
+.income-card{background:linear-gradient(135deg,rgba(232,184,75,.08),rgba(232,148,75,.04));border-radius:var(--r);border:1px solid rgba(232,184,75,.15);padding:14px;margin:0 15px 10px;}
+.income-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.income-month{font-size:11px;font-weight:600;color:var(--muted2);}
+.income-gross{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:var(--gold);line-height:1;}
+.income-breakdown{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px;}
+.income-item{background:rgba(0,0,0,.2);border-radius:10px;padding:9px;}
+.income-item-lbl{font-size:9px;color:var(--muted);font-weight:600;letter-spacing:.6px;text-transform:uppercase;}
+.income-item-val{font-family:'Fraunces',serif;font-size:15px;font-weight:600;margin-top:3px;}
+
+/* PM DETAIL CARD */
+.pm-detail{background:var(--s1);border-radius:var(--r);border:1px solid var(--border);padding:14px;margin:0 15px 10px;}
+.pm-detail-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.pm-avatar{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.pm-company{font-size:13px;font-weight:600;}
+.pm-role{font-size:11px;color:var(--muted2);margin-top:2px;}
+.pm-detail-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--border);}
+.pm-detail-key{font-size:11px;color:var(--muted2);}
+.pm-detail-val{font-size:12px;font-weight:500;}
+.pm-contact-btns{display:flex;gap:6px;margin-top:10px;}
+.pm-btn{flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--s3);font-family:inherit;font-size:11px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;text-decoration:none;transition:border-color .2s;}
+.pm-btn:active{border-color:var(--gold);}
+
+/* INSPECTION */
+.insp-card{background:var(--s1);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;margin:0 15px 10px;}
+.insp-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);}
+.insp-item:last-child{border-bottom:none;}
+.insp-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.insp-body{flex:1;}
+.insp-title{font-size:13px;font-weight:500;}
+.insp-sub{font-size:11px;color:var(--muted2);margin-top:2px;}
+.insp-right{text-align:right;}
+.insp-amt{font-family:'Fraunces',serif;font-size:14px;font-weight:600;color:var(--muted2);}
+.insp-status{font-size:10px;margin-top:2px;}
+
+/* NOTES */
+.note-item{padding:12px 14px;border-bottom:1px solid var(--border);}
+.note-item:last-child{border-bottom:none;}
+.note-header{display:flex;justify-content:space-between;margin-bottom:4px;}
+.note-title{font-size:12px;font-weight:600;}
+.note-date{font-size:10px;color:var(--muted);}
+.note-body{font-size:12px;color:var(--muted2);line-height:1.45;}
+
+/* COMMS */
+.contact-row{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);}
+.contact-row:last-child{border-bottom:none;}
+.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;font-size:13px;flex-shrink:0;}
+.contact-info{flex:1;min-width:0;}
+.contact-name{font-size:13px;font-weight:500;}
+.contact-role{font-size:11px;color:var(--muted2);margin-top:1px;}
+.c-btns{display:flex;gap:5px;}
+.c-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;text-decoration:none;transition:border-color .2s;}
+.c-btn:active{border-color:var(--gold);}
+
+/* MSG */
+.msg-item{padding:11px 14px;border-bottom:1px solid var(--border);}
+.msg-item:last-child{border-bottom:none;}
+.msg-head{display:flex;justify-content:space-between;margin-bottom:3px;}
+.msg-who{font-size:12px;font-weight:600;}
+.msg-when{font-size:10px;color:var(--muted);}
+.msg-body{font-size:12px;color:var(--muted2);line-height:1.4;}
+
+/* TMPL */
+.tmpl{background:var(--s3);border-radius:12px;padding:12px;margin-bottom:7px;cursor:pointer;border:1px solid var(--border);transition:border-color .2s;}
+.tmpl:active{border-color:rgba(232,184,75,.4);}
+.tmpl-title{font-size:12px;font-weight:600;margin-bottom:3px;}
+.tmpl-prev{font-size:11px;color:var(--muted2);line-height:1.4;}
+
+/* MINI CHART */
+.mchart{display:flex;align-items:flex-end;gap:5px;height:68px;}
+.mc-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.mc-bar{width:100%;border-radius:3px 3px 0 0;}
+.mc-lbl{font-size:9px;color:var(--muted);}
+
+/* NET SUMMARY */
+.fin-row{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);}
+.fin-row:last-child{border-bottom:none;}
+.fin-lbl{font-size:12px;color:var(--muted2);}
+.fin-val{font-family:'Fraunces',serif;font-size:14px;font-weight:600;}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(12px);z-index:200;align-items:flex-end;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{width:100%;max-width:430px;background:var(--s2);border-radius:22px 22px 0 0;padding:18px 18px 40px;max-height:92dvh;overflow-y:auto;animation:slideUp .26s cubic-bezier(.34,1.1,.64,1);}
+.modal::-webkit-scrollbar{display:none;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:none;}}
+.mhandle{width:34px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px;}
+.modal h2{font-family:'Fraunces',serif;font-size:20px;font-weight:700;margin-bottom:16px;}
+
+/* FORM */
+.fg{margin-bottom:12px;}
+.fg label{display:block;font-size:9px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.fg input,.fg select,.fg textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:11px;padding:11px 12px;font-family:inherit;font-size:14px;color:var(--text);outline:none;transition:border-color .2s;-webkit-appearance:none;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--gold);}
+.fg select option{background:var(--s2);}
+.fg textarea{resize:vertical;min-height:68px;}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.btn{width:100%;padding:13px;border-radius:12px;border:none;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s,transform .15s;}
+.btn:active{opacity:.85;transform:scale(.98);}
+.btn-gold{background:var(--gold);color:var(--bg);}
+.btn-ghost{background:var(--s3);color:var(--muted2);margin-top:7px;}
+
+/* TYPE GRID */
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:9px;}
+.tbtn{padding:12px 5px;border-radius:11px;background:var(--s3);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:10px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:border-color .2s;text-decoration:none;justify-content:center;}
+.tbtn:active{border-color:rgba(232,184,75,.5);}
+.tbtn span{font-size:19px;}
+
+/* UPLOAD */
+.upload{border:2px dashed var(--border2);border-radius:11px;padding:18px;text-align:center;cursor:pointer;margin-bottom:12px;transition:border-color .2s;}
+.upload:hover{border-color:var(--gold);}
+.upload input{display:none;}
+
+/* EMPTY */
+.empty{text-align:center;padding:30px 20px;color:var(--muted);}
+.empty-e{font-size:32px;margin-bottom:9px;opacity:.35;}
+.empty p{font-size:12px;}
+
+/* PROP TYPE TAG on forms */
+.prop-type-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;margin-left:6px;vertical-align:middle;}
+</style>
+</head>
+<body>
+<div class="scroll" id="scroller">
+
+<!-- ══ DASHBOARD ══ -->
+<div class="page active" id="page-dash">
+  <div class="ph">
+    <div class="ph-row">
+      <div><h1>PropTrack <em style="color:var(--gold);font-style:italic">NZ</em></h1><p id="dash-sub">Your properties at a glance</p></div>
+      <div style="font-size:24px">🏘</div>
+    </div>
+  </div>
+  <div class="sg" id="dash-stats"></div>
+  <div class="split-bar" id="dash-split"></div>
+  <div id="dash-props"></div>
+  <div class="sec" style="margin-top:4px">
+    <div class="sec-lbl">Recent Activity</div>
+    <div class="card" id="dash-activity"></div>
+  </div>
+</div>
+
+<!-- ══ LONG-TERM ══ -->
+<div class="page" id="page-lt">
+  <div class="ph">
+    <div class="ph-row">
+      <div>
+        <div class="bdg bdg-teal" style="margin-bottom:5px">🏡 Long-Term Rental</div>
+        <h1 id="lt-prop-name">—</h1>
+        <p id="lt-prop-addr">—</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="ltTab('overview',this)">Overview</button>
+    <button class="tab" onclick="ltTab('rent',this)">Rent</button>
+    <button class="tab" onclick="ltTab('pm',this)">PM & Fees</button>
+    <button class="tab" onclick="ltTab('inspections',this)">Inspections</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="ltv-overview">
+    <div class="sg" id="lt-stats"></div>
+    <div class="sec"><div class="sec-lbl">6-Month Rent</div><div class="card" style="padding:12px;"><div class="mchart" id="lt-chart"></div></div></div>
+    <div class="sec"><div class="sec-lbl">Financials</div><div class="card" id="lt-fin"></div></div>
+  </div>
+
+  <!-- RENT -->
+  <div id="ltv-rent" style="display:none">
+    <div class="sec"><div class="sec-lbl">Rent Payments</div><div class="card" id="lt-rent-list"></div>
+      <div class="sum-bar" id="lt-rent-sum" style="display:none"><span>Total Collected</span><strong style="color:var(--teal)" id="lt-rent-total">$0</strong></div>
+    </div>
+  </div>
+
+  <!-- PM & FEES -->
+  <div id="ltv-pm" style="display:none">
+    <div id="lt-pm-card"></div>
+    <div class="sec"><div class="sec-lbl">PM Fees Paid</div><div class="card" id="lt-pm-fees-list"></div>
+      <div class="sum-bar" id="lt-pm-sum" style="display:none"><span>Total Fees Paid</span><strong style="color:var(--rose)" id="lt-pm-total">$0</strong></div>
+    </div>
+  </div>
+
+  <!-- INSPECTIONS -->
+  <div id="ltv-inspections" style="display:none">
+    <div class="sec"><div class="sec-lbl">Inspection Schedule</div><div id="lt-insp-list"></div></div>
+  </div>
+</div>
+
+<!-- ══ AIRBNB ══ -->
+<div class="page" id="page-bnb">
+  <div class="ph">
+    <div class="ph-row">
+      <div>
+        <div class="bdg bdg-gold" style="margin-bottom:5px">🏨 Airbnb / Short-Term</div>
+        <h1 id="bnb-prop-name">—</h1>
+        <p id="bnb-prop-addr">—</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="bnbTab('overview',this)">Overview</button>
+    <button class="tab" onclick="bnbTab('income',this)">Income</button>
+    <button class="tab" onclick="bnbTab('expenses',this)">Expenses</button>
+    <button class="tab" onclick="bnbTab('pm',this)">PM</button>
+    <button class="tab" onclick="bnbTab('notes',this)">Notes</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="bnbv-overview">
+    <div class="sg" id="bnb-stats"></div>
+    <div class="sec"><div class="sec-lbl">Monthly Income</div><div class="card" style="padding:12px;"><div class="mchart" id="bnb-chart"></div></div></div>
+    <div class="sec"><div class="sec-lbl">Financials</div><div class="card" id="bnb-fin"></div></div>
+  </div>
+
+  <!-- INCOME -->
+  <div id="bnbv-income" style="display:none">
+    <div class="sec"><div class="sec-lbl">Monthly Airbnb Payouts</div><div class="card" id="bnb-income-list"></div>
+      <div class="sum-bar" id="bnb-inc-sum" style="display:none"><span>Total Income</span><strong style="color:var(--gold)" id="bnb-inc-total">$0</strong></div>
+    </div>
+  </div>
+
+  <!-- EXPENSES -->
+  <div id="bnbv-expenses" style="display:none">
+    <div class="sec"><div class="sec-lbl">By Category</div><div class="card" style="padding:13px;" id="bnb-cat-chart"></div></div>
+    <div class="sec" style="margin-top:4px"><div class="sec-lbl">All Expenses</div><div class="card" id="bnb-exp-list"></div>
+      <div class="sum-bar" id="bnb-exp-sum" style="display:none"><span>Total Expenses</span><strong style="color:var(--rose)" id="bnb-exp-total">$0</strong></div>
+    </div>
+  </div>
+
+  <!-- PM -->
+  <div id="bnbv-pm" style="display:none">
+    <div id="bnb-pm-card"></div>
+    <div class="sec"><div class="sec-lbl">Hostaway Note</div>
+      <div class="card" style="padding:13px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="font-size:22px">🔗</span>
+          <div><div style="font-size:13px;font-weight:600">Hostaway Booking Platform</div><div style="font-size:11px;color:var(--muted2);margin-top:2px">Bookings fully managed by your PM company via Hostaway. Income figures below reflect payouts received.</div></div>
+        </div>
+        <a href="https://app.hostaway.com" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--s3);border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--sky);font-size:12px;font-weight:600;">🌐 Open Hostaway Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTES -->
+  <div id="bnbv-notes" style="display:none">
+    <div class="sec"><div class="sec-lbl">Documents & Notes</div><div class="card" id="bnb-notes-list"></div></div>
+  </div>
+</div>
+
+<!-- ══ COMMS ══ -->
+<div class="page" id="page-comms">
+  <div class="ph"><h1>Comms</h1><p>Contacts, messages & templates</p></div>
+  <div class="tabs">
+    <button class="tab active" onclick="commsTab('contacts',this)">Contacts</button>
+    <button class="tab" onclick="commsTab('templates',this)">Templates</button>
+    <button class="tab" onclick="commsTab('log',this)">Log</button>
+  </div>
+  <div id="cv-contacts"><div class="sec"><div class="sec-lbl">All Contacts</div><div class="card" id="contacts-list"></div></div></div>
+  <div id="cv-templates" style="display:none"><div class="sec"><div class="sec-lbl">Quick Templates</div><div id="tmpl-list"></div></div></div>
+  <div id="cv-log" style="display:none"><div class="sec"><div class="sec-lbl">Message Log</div><div class="card" id="msg-log"></div></div></div>
+</div>
+
+</div><!-- /scroll -->
+
+<!-- NAV -->
+<nav class="bnav">
+  <button class="nb active" onclick="showPage('dash',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    Home
+  </button>
+  <button class="nb" onclick="showPage('lt',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Long-Term
+    <div class="nb-pip" id="pip-lt"></div>
+  </button>
+  <button class="nb" onclick="showPage('bnb',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    Airbnb
+    <div class="nb-pip" id="pip-bnb"></div>
+  </button>
+  <button class="nb" onclick="showPage('comms',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Comms
+  </button>
+</nav>
+
+<button class="fab" onclick="openFab()">+</button>
+
+<!-- ═══ ADD MODAL ═══ -->
+<div class="overlay" id="ov-add" onclick="closeOv(event,'ov-add')">
+<div class="modal">
+  <div class="mhandle"></div>
+  <h2 id="modal-h">Add New</h2>
+
+  <!-- TYPE SELECT -->
+  <div id="add-types">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Long-Term Rental</div>
+    <div class="tgrid">
+      <button class="tbtn" onclick="setForm('lt-rent')"><span>💰</span>Rent</button>
+      <button class="tbtn" onclick="setForm('lt-pmfee')"><span>🤝</span>PM Fee</button>
+      <button class="tbtn" onclick="setForm('lt-insp')"><span>🔍</span>Inspection</button>
+    </div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin:10px 0 10px;">Airbnb</div>
+    <div class="tgrid">
+      <button class="tbtn" onclick="setForm('bnb-income')"><span>📥</span>Income</button>
+      <button class="tbtn" onclick="setForm('bnb-expense')"><span>💸</span>Expense</button>
+      <button class="tbtn" onclick="setForm('bnb-note')"><span>📝</span>Note</button>
+    </div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin:10px 0 10px;">General</div>
+    <div class="tgrid">
+      <button class="tbtn" onclick="setForm('msg')"><span>✉️</span>Message</button>
+    </div>
+    <button class="btn btn-ghost" onclick="closeOv(null,'ov-add')">Cancel</button>
+  </div>
+
+  <!-- LT RENT -->
+  <div id="form-lt-rent" style="display:none">
+    <div class="fg"><label>Month</label><input id="ltr-month" type="month"></div>
+    <div class="fg"><label>Amount ($)</label><input id="ltr-amt" type="number" placeholder="2800"></div>
+    <div class="fg"><label>Status</label>
+      <select id="ltr-status"><option value="paid">Paid ✅</option><option value="pending">Pending ⏳</option><option value="overdue">Overdue ❗</option></select>
+    </div>
+    <div class="fg"><label>Notes</label><input id="ltr-notes" placeholder="e.g. via bank transfer 1 March"></div>
+    <button class="btn btn-gold" onclick="saveLtRent()">Record Rent</button>
+    <button class="btn btn-ghost" onclick="setForm(null)">← Back</button>
+  </div>
+
+  <!-- LT PM FEE -->
+  <div id="form-lt-pmfee" style="display:none">
+    <div class="fg"><label>Period / Description</label><input id="ltf-desc" placeholder="e.g. Weekly PM fee – March"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Amount ($)</label><input id="ltf-amt" type="number" placeholder="80"></div>
+      <div class="fg"><label>Date</label><input id="ltf-date" type="date"></div>
+    </div>
+    <div class="fg"><label>Fee Type</label>
+      <select id="ltf-type"><option value="weekly">Weekly management fee</option><option value="inspection">Inspection fee</option><option value="letting">Letting/reletting fee</option><option value="other">Other</option></select>
+    </div>
+    <button class="btn btn-gold" onclick="saveLtPmFee()">Save Fee</button>
+    <button class="btn btn-ghost" onclick="setForm(null)">← Back</button>
+  </div>
+
+  <!-- LT INSPECTION -->
+  <div id="form-lt-insp" style="display:none">
+    <div class="fg"><label>Inspection Date</label><input id="lti-date" type="date"></div>
+    <div class="fg"><label>Type</label>
+      <select id="lti-type"><option value="routine">Routine inspection</option><option value="entry">Entry inspection</option><option value="exit">Exit inspection</option><option value="maintenance">Maintenance check</option></select>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Fee ($)</label><input id="lti-fee" type="number" placeholder="0"></div>
+      <div class="fg"><label>Status</label>
+        <select id="lti-status"><option value="upcoming">Upcoming</option><option value="done">Completed</option></select>
+      </div>
+    </div>
+    <div class="fg"><label>Notes</label><textarea id="lti-notes" placeholder="Any observations…"></textarea></div>
+    <button class="btn btn-gold" onclick="saveLtInsp()">Save Inspection</button>
+    <button class="btn btn-ghost" onclick="setForm(null)">← Back</button>
+  </div>
+
+  <!-- BNB INCOME -->
+  <div id="form-bnb-income" style="display:none">
+    <div class="fg"><label>Month</label><input id="bnbi-month" type="month"></div>
+    <div class="fg"><label>Gross Payout ($) <span style="color:var(--muted2);font-size:10px">(amount received from PM)</span></label><input id="bnbi-gross" type="number" placeholder="3200"></div>
+    <div class="fg"><label>PM Commission ($)</label><input id="bnbi-commission" type="number" placeholder="480" oninput="calcNet()"></div>
+    <div class="fg"><label>Net to You ($) <span style="color:var(--muted2);font-size:10px">(auto-calculated)</span></label><input id="bnbi-net" type="number" placeholder="2720" style="border-color:rgba(46,207,168,.3);color:var(--teal)"></div>
+    <div class="fg"><label>Notes</label><input id="bnbi-notes" placeholder="e.g. 3 bookings this month"></div>
+    <button class="btn btn-gold" onclick="saveBnbIncome()">Record Income</button>
+    <button class="btn btn-ghost" onclick="setForm(null)">← Back</button>
+  </div>
+
+  <!-- BNB EXPENSE -->
+  <div id="form-bnb-expense" style="display:none">
+    <div class="fg"><label>Description</label><input id="bnbe-desc" placeholder="e.g. Power bill March"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Amount ($)</label><input id="bnbe-amt" type="number" placeholder="145"></div>
+      <div class="fg"><label>Date</label><input id="bnbe-date" type="date"></div>
+    </div>
+    <div class="fg"><label>Category</label>
+      <select id="bnbe-cat">
+        <option value="power">⚡ Power / Electricity</option>
+        <option value="furnishing">🛋️ Furnishing</option>
+        <option value="repairs">🔧 Repairs</option>
+        <option value="cleaning">🧹 Cleaning</option>
+        <option value="supplies">🛒 Supplies</option>
+        <option value="other">📦 Other</option>
+      </select>
+    </div>
+    <div class="upload" onclick="document.getElementById('bnb-file-in').click()">
+      <input type="file" id="bnb-file-in" accept=".pdf,image/*" onchange="handleFile(event)">
+      <div style="font-size:24px;margin-bottom:5px">📎</div>
+      <div style="font-size:12px;color:var(--muted2)">Attach receipt / bill</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px" id="bnb-fname">PDF or photo</div>
+    </div>
+    <button class="btn btn-gold" onclick="saveBnbExpense()">Add Expense</button>
+    <button class="btn btn-ghost" onclick="setForm(null)">← Back</button>
+  </div>
+
+  <!-- BNB NOTE -->
+  <div id="form-bnb-note" style="display:none">
+    <div class="fg"><label>Title</label><input id="bnbn-title" placeholder="e.g. PM agreement updated"></div>
+    <div class="fg"><label>Note / Details</label><textarea id="bnbn-body" placeholder="Enter details…"></textarea></div>
+    <div class="upload" onclick="document.getElementById('note-file-in').click()">
+      <input type="file" id="note-file-in" accept=".pdf,image/*" onchange="handleNoteFile(event)">
+      <div style="font-size:24px;margin-bottom:5px">📁</div>
+      <div style="font-size:12px;color:var(--muted2)">Attach document (optional)</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px" id="note-fname">PDF or photo</div>
+    </div>
+    <button class="btn btn-gold" onclick="saveBnbNote()">Save Note</button>
+    <button class="btn btn-ghost" onclick="setForm(null)">← Back</button>
+  </div>
+
+  <!-- QUICK MESSAGE -->
+  <div id="form-msg" style="display:none">
+    <div class="fg"><label>To</label>
+      <select id="fmsg-contact">
+        <option value="">Select contact…</option>
+      </select>
+    </div>
+    <div class="fg"><label>Message</label><textarea id="fmsg-body" placeholder="Type your message…" style="min-height:90px;" oninput="refreshMsgLinks()"></textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:9px;">
+      <a id="fmsg-sms" href="#" class="tbtn"><span>💬</span>SMS</a>
+      <a id="fmsg-wa" href="#" class="tbtn"><span>🟢</span>WhatsApp</a>
+      <a id="fmsg-email" href="#" class="tbtn"><span>✉️</span>Email</a>
+    </div>
+    <button class="btn btn-ghost" onclick="setForm(null)">← Back</button>
+  </div>
+
+</div>
+</div>
+
+<!-- COMMS COMPOSE MODAL -->
+<div class="overlay" id="ov-comms" onclick="closeOv(event,'ov-comms')">
+<div class="modal">
+  <div class="mhandle"></div>
+  <h2 id="comms-modal-title">Message</h2>
+  <div class="fg"><label>To</label><input id="cm-to" readonly style="color:var(--muted2)"></div>
+  <div class="fg"><label>Message</label><textarea id="cm-msg" style="min-height:90px;" oninput="refreshCommsLinks()"></textarea></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:9px;">
+    <a id="cm-sms" href="#" class="tbtn" onclick="logMsg('sms')"><span>💬</span>SMS</a>
+    <a id="cm-wa" href="#" class="tbtn" onclick="logMsg('whatsapp')"><span>🟢</span>WhatsApp</a>
+    <a id="cm-email" href="#" class="tbtn" onclick="logMsg('email')"><span>✉️</span>Email</a>
+  </div>
+  <button class="btn btn-ghost" onclick="closeOv(null,'ov-comms')">Close</button>
+</div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════
+const KEY='proptrack_v5';
+let S=JSON.parse(localStorage.getItem(KEY)||'null')||initState();
+
+function initState(){
+  return {
+    lt:{
+      id:'lt', type:'longterm', name:'Hillside House', address:'42 Hillside Rd, Remuera, Auckland',
+      emoji:'🏡', tenant:'Sarah Johnson', tenantPhone:'+64211234567', tenantEmail:'sarah@email.com',
+      weeklyRent:650,
+      pm:{name:'RealNZ Property Management', contact:'Jane Williams', phone:'+6495551234', email:'jane@realnz.co.nz', weeklyFee:65, feeType:'% of rent'}
+    },
+    bnb:{
+      id:'bnb', type:'airbnb', name:'City Townhouse', address:'8 Short St, Ponsonby, Auckland',
+      emoji:'🏨', commissionPct:15,
+      pm:{name:'Urban Stays PM', contact:'Mark Teo', phone:'+6495559876', email:'mark@urbanstays.co.nz', commissionPct:15}
+    },
+    ltRent:[], ltPmFees:[], ltInspections:[],
+    bnbIncome:[], bnbExpenses:[], bnbNotes:[],
+    msgLog:[]
+  };
+}
+
+// Seed demo data
+if(!S.ltRent.length){
+  const now=new Date();
+  const mo=(y,m)=>`${y}-${String(m).padStart(2,'0')}`;
+  S.ltRent=[
+    {id:1,month:mo(2026,3),amount:2800,status:'paid',notes:'Bank transfer 1 Mar'},
+    {id:2,month:mo(2026,2),amount:2800,status:'paid',notes:''},
+    {id:3,month:mo(2026,1),amount:2800,status:'paid',notes:''},
+    {id:4,month:mo(2025,12),amount:2800,status:'paid',notes:''},
+    {id:5,month:mo(2025,11),amount:2800,status:'paid',notes:''},
+    {id:6,month:mo(2025,10),amount:2800,status:'paid',notes:''}
+  ];
+  S.ltPmFees=[
+    {id:1,desc:'Weekly PM fee – Mar wk1',amount:65,date:'2026-03-01',type:'weekly'},
+    {id:2,desc:'Weekly PM fee – Mar wk2',amount:65,date:'2026-03-08',type:'weekly'},
+    {id:3,desc:'Routine inspection fee',amount:120,date:'2026-02-15',type:'inspection'},
+    {id:4,desc:'Weekly PM fee – Feb wk4',amount:65,date:'2026-02-22',type:'weekly'}
+  ];
+  S.ltInspections=[
+    {id:1,date:'2026-05-15',type:'routine',fee:120,status:'upcoming',notes:'Scheduled 6-month routine'},
+    {id:2,date:'2026-02-15',type:'routine',fee:120,status:'done',notes:'All in good order. Minor paint scuff in hallway noted.'},
+    {id:3,date:'2025-08-10',type:'routine',fee:120,status:'done',notes:'Property well maintained.'}
+  ];
+  S.bnbIncome=[
+    {id:1,month:'2026-03',gross:3200,commission:480,net:2720,notes:'4 bookings'},
+    {id:2,month:'2026-02',gross:2800,commission:420,net:2380,notes:'3 bookings'},
+    {id:3,month:'2026-01',gross:3600,commission:540,net:3060,notes:'5 bookings — peak season'},
+    {id:4,month:'2025-12',gross:4100,commission:615,net:3485,notes:'Peak Dec — 6 bookings'},
+    {id:5,month:'2025-11',gross:2400,commission:360,net:2040,notes:'3 bookings'},
+    {id:6,month:'2025-10',gross:2600,commission:390,net:2210,notes:'3 bookings'}
+  ];
+  S.bnbExpenses=[
+    {id:1,desc:'Power – Vector Energy Feb',amount:185,cat:'power',date:'2026-02-28',file:null},
+    {id:2,desc:'Power – Vector Energy Jan',amount:210,cat:'power',date:'2026-01-31',file:null},
+    {id:3,desc:'Sofa & coffee table',amount:1650,cat:'furnishing',date:'2026-01-10',file:null},
+    {id:4,desc:'New linen set (x3)',amount:320,cat:'furnishing',date:'2026-01-15',file:null},
+    {id:5,desc:'Plumber – blocked drain',amount:180,cat:'repairs',date:'2026-02-10',file:null}
+  ];
+  S.bnbNotes=[
+    {id:1,title:'PM Agreement – Urban Stays',body:'15% commission on gross revenue. Monthly payouts on the 5th. Cleaning charged to guests. Minor repairs under $200 handled by PM.',date:'2026-01-01',file:'PM_Agreement_UrbanStays.pdf'},
+    {id:2,title:'Furnishing budget 2026',body:'Allocated $5,000 for furnishing refresh. Spent $1,970 so far.',date:'2026-01-10',file:null}
+  ];
+  S.msgLog=[
+    {id:1,to:'Jane Williams (RealNZ)',msg:'Hi Jane, can you confirm the May inspection date?',when:'2026-03-02 09:15',via:'email'},
+    {id:2,to:'Mark Teo (Urban Stays)',msg:'Hi Mark, please send the Feb income statement when ready.',when:'2026-03-01 14:30',via:'email'}
+  ];
+  save();
+}
+
+function save(){localStorage.setItem(KEY,JSON.stringify(S));}
+function nid(arr){return arr.length?Math.max(...arr.map(x=>x.id))+1:1;}
+function fm(n){return '$'+Number(n||0).toLocaleString();}
+function td(){return new Date().toISOString().split('T')[0];}
+function fd(d){if(!d)return '';return new Date(d+'T12:00:00').toLocaleDateString('en-NZ',{day:'numeric',month:'short',year:'2-digit'});}
+function fmo(m){if(!m)return '';const[y,mo]=m.split('-');return new Date(y,mo-1).toLocaleDateString('en-NZ',{month:'short',year:'2-digit'});}
+function daysUntil(d){return Math.ceil((new Date(d+'T12:00:00')-new Date())/(86400000));}
+
+// ══════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('scroller').scrollTop=0;
+  renderAll();
+}
+
+// ══════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════
+function renderAll(){renderDash();renderLt();renderBnb();renderComms();}
+
+// ─── DASHBOARD ───
+function renderDash(){
+  const h=new Date().getHours();
+  document.getElementById('dash-sub').textContent=h<12?'Good morning ☀️':h<17?'Good afternoon 🌤':'Good evening 🌙';
+
+  const ltCollected=S.ltRent.filter(r=>r.status==='paid').reduce((s,r)=>s+r.amount,0);
+  const bnbNet=S.bnbIncome.reduce((s,i)=>s+i.net,0);
+  const totalIn=ltCollected+bnbNet;
+  const ltFees=S.ltPmFees.reduce((s,f)=>s+f.amount,0);
+  const bnbExp=S.bnbExpenses.reduce((s,e)=>s+e.amount,0);
+  const totalOut=ltFees+bnbExp;
+  const net=totalIn-totalOut;
+  const ltOverdue=S.ltRent.filter(r=>r.status==='overdue').length;
+  const upInsp=S.ltInspections.filter(i=>i.status==='upcoming').length;
+
+  document.getElementById('dash-stats').innerHTML=`
+    <div class="sc g"><div class="sc-lbl">Total Income</div><div class="sc-val">${fm(totalIn)}</div><div class="sc-sub">LT + Airbnb</div></div>
+    <div class="sc t"><div class="sc-val">${fm(net)}</div><div class="sc-lbl">Net Position</div><div class="sc-sub">${net>=0?'Profit 📈':'Loss 📉'}</div></div>
+    <div class="sc b"><div class="sc-lbl">LT Rent Due</div><div class="sc-val">${fm(S.lt.weeklyRent*4.33|0)}/mo</div><div class="sc-sub">${S.lt.tenant}</div></div>
+    <div class="sc r"><div class="sc-lbl">Inspections</div><div class="sc-val">${upInsp}</div><div class="sc-sub">Upcoming</div></div>`;
+
+  // Split bar
+  const tot=totalIn+totalOut||1;
+  document.getElementById('dash-split').innerHTML=`
+    <div class="split-lbl">Income vs Outgoings</div>
+    <div class="split-track">
+      <div class="split-in" style="width:${Math.round(totalIn/tot*100)}%"></div>
+      <div class="split-out" style="width:${Math.round(totalOut/tot*100)}%"></div>
+    </div>
+    <div class="split-foot">
+      <div class="split-item"><div class="split-dot" style="background:var(--teal)"></div>In ${fm(totalIn)}</div>
+      <div class="split-item"><div class="split-dot" style="background:var(--rose)"></div>Out ${fm(totalOut)}</div>
+    </div>`;
+
+  // Property cards
+  const ltLatestRent=S.ltRent.sort((a,b)=>b.month.localeCompare(a.month))[0];
+  const bnbLatestInc=S.bnbIncome.sort((a,b)=>b.month.localeCompare(a.month))[0];
+  document.getElementById('dash-props').innerHTML=`
+    <div class="prop-card">
+      <div class="prop-top">
+        <div class="prop-emoji" style="background:rgba(46,207,168,.12)">${S.lt.emoji}</div>
+        <div style="flex:1;min-width:0">
+          <div class="prop-badge-type lt">🏡 Long-Term</div>
+          <div class="prop-name">${S.lt.name}</div>
+          <div class="prop-addr">${S.lt.address}</div>
+          <div class="prop-badges">
+            ${ltLatestRent?`<span class="bdg bdg-${ltLatestRent.status==='paid'?'teal':ltLatestRent.status==='overdue'?'rose':'gold'}">${ltLatestRent.status==='paid'?'✓ Rent paid':'⏳ '+ltLatestRent.status}</span>`:''}
+            ${upInsp?`<span class="bdg bdg-sky">🔍 ${upInsp} inspection</span>`:''}
+          </div>
+        </div>
+      </div>
+      <div class="prop-pm"><div class="prop-pm-icon">🤝</div><div><div class="prop-pm-name">${S.lt.pm.name}</div><div class="prop-pm-text">${S.lt.pm.contact} · ${S.lt.pm.phone}</div></div></div>
+    </div>
+    <div class="prop-card">
+      <div class="prop-top">
+        <div class="prop-emoji" style="background:rgba(232,184,75,.12)">${S.bnb.emoji}</div>
+        <div style="flex:1;min-width:0">
+          <div class="prop-badge-type bnb">🏨 Airbnb</div>
+          <div class="prop-name">${S.bnb.name}</div>
+          <div class="prop-addr">${S.bnb.address}</div>
+          <div class="prop-badges">
+            ${bnbLatestInc?`<span class="bdg bdg-gold">📥 ${fmo(bnbLatestInc.month)}: ${fm(bnbLatestInc.net)}</span>`:''}
+            <span class="bdg bdg-peach">🔗 Hostaway</span>
+          </div>
+        </div>
+      </div>
+      <div class="prop-pm"><div class="prop-pm-icon">🤝</div><div><div class="prop-pm-name">${S.bnb.pm.name}</div><div class="prop-pm-text">${S.bnb.pm.contact} · ${S.bnb.pm.commissionPct}% commission</div></div></div>
+    </div>`;
+
+  // Activity
+  const acts=[
+    ...S.ltRent.slice(-2).map(r=>({e:'💰',t:`LT Rent ${r.status}`,s:fmo(r.month)+' · '+S.lt.name,d:r.month+'-01'})),
+    ...S.ltPmFees.slice(-2).map(f=>({e:'🤝',t:f.desc,s:S.lt.pm.name,d:f.date})),
+    ...S.bnbIncome.slice(-2).map(i=>({e:'📥',t:`Airbnb payout ${fm(i.net)}`,s:fmo(i.month)+' · '+S.bnb.name,d:i.month+'-05'})),
+    ...S.bnbExpenses.slice(-2).map(e=>({e:'💸',t:e.desc,s:S.bnb.name,d:e.date}))
+  ].sort((a,b)=>(b.d||'').localeCompare(a.d||'')).slice(0,5);
+  document.getElementById('dash-activity').innerHTML=acts.length?acts.map(a=>`
+    <div class="li"><div class="li-icon" style="background:var(--s3)">${a.e}</div>
+    <div class="li-body"><div class="li-title">${a.t}</div><div class="li-sub">${a.s||''}</div></div>
+    <div class="li-date">${fd(a.d)}</div></div>`).join(''):`<div class="empty"><div class="empty-e">📋</div><p>No activity yet</p></div>`;
+
+  // Pips
+  document.getElementById('pip-lt').className='nb-pip'+(ltOverdue?' on':'');
+  const urgBnb=S.bnbExpenses.length&&S.bnbIncome.length===0;
+  document.getElementById('pip-bnb').className='nb-pip'+(urgBnb?' on':'');
+}
+
+// ─── LONG-TERM ───
+let ltView='overview';
+function ltTab(v,btn){
+  ltView=v;
+  ['overview','rent','pm','inspections'].forEach(x=>document.getElementById('ltv-'+x).style.display=x===v?'block':'none');
+  document.querySelectorAll('#page-lt .tabs .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+}
+function renderLt(){
+  document.getElementById('lt-prop-name').textContent=S.lt.name;
+  document.getElementById('lt-prop-addr').textContent=S.lt.address;
+
+  const collected=S.ltRent.filter(r=>r.status==='paid').reduce((s,r)=>s+r.amount,0);
+  const fees=S.ltPmFees.reduce((s,f)=>s+f.amount,0);
+  const net=collected-fees;
+  const pending=S.ltRent.filter(r=>r.status==='pending'||r.status==='overdue').length;
+
+  document.getElementById('lt-stats').innerHTML=`
+    <div class="sc t"><div class="sc-lbl">Rent Collected</div><div class="sc-val">${fm(collected)}</div><div class="sc-sub">${S.ltRent.filter(r=>r.status==='paid').length} payments</div></div>
+    <div class="sc r"><div class="sc-lbl">PM Fees Paid</div><div class="sc-val">${fm(fees)}</div><div class="sc-sub">Total to date</div></div>
+    <div class="sc ${net>=0?'g':'r'}" style="grid-column:span 2"><div class="sc-lbl">Net Position</div><div class="sc-val">${fm(net)}</div><div class="sc-sub">Collected minus PM fees</div></div>`;
+
+  // Chart
+  const now=new Date();
+  const months=Array.from({length:6},(_,i)=>{const d=new Date(now.getFullYear(),now.getMonth()-5+i,1);return{key:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,lbl:d.toLocaleDateString('en-NZ',{month:'short'})};});
+  const maxR=Math.max(...months.map(m=>S.ltRent.filter(r=>r.month===m.key&&r.status==='paid').reduce((s,r)=>s+r.amount,0)),1);
+  document.getElementById('lt-chart').innerHTML=months.map(m=>{
+    const col=S.ltRent.filter(r=>r.month===m.key&&r.status==='paid').reduce((s,r)=>s+r.amount,0);
+    return `<div class="mc-col"><div class="mc-bar" style="height:${Math.max(Math.round(col/maxR*100),4)}%;background:${col>0?'var(--teal)':'var(--s3)'}"></div><div class="mc-lbl">${m.lbl}</div></div>`;
+  }).join('');
+
+  // Financials
+  document.getElementById('lt-fin').innerHTML=`
+    <div class="fin-row"><div class="fin-lbl">Weekly rent</div><div class="fin-val" style="color:var(--gold)">${fm(S.lt.weeklyRent)}/wk</div></div>
+    <div class="fin-row"><div class="fin-lbl">PM weekly fee</div><div class="fin-val" style="color:var(--rose)">${fm(S.lt.pm.weeklyFee)}/wk</div></div>
+    <div class="fin-row"><div class="fin-lbl">Net weekly</div><div class="fin-val" style="color:var(--teal)">${fm(S.lt.weeklyRent-S.lt.pm.weeklyFee)}/wk</div></div>
+    <div class="fin-row"><div class="fin-lbl">Tenant</div><div class="fin-val">${S.lt.tenant}</div></div>`;
+
+  // Rent list
+  const rentItems=S.ltRent.slice().sort((a,b)=>b.month.localeCompare(a.month));
+  document.getElementById('lt-rent-list').innerHTML=rentItems.length?rentItems.map(r=>`
+    <div class="li">
+      <div class="dot dot-${r.status}" style="margin:0 2px"></div>
+      <div class="li-icon" style="background:${r.status==='paid'?'rgba(46,207,168,.1)':r.status==='overdue'?'rgba(232,83,75,.1)':'rgba(232,184,75,.1)'}">${r.status==='paid'?'✅':r.status==='overdue'?'❗':'⏳'}</div>
+      <div class="li-body"><div class="li-title">${fmo(r.month)}</div><div class="li-sub">${r.notes||'—'}</div></div>
+      <div class="li-right"><div class="li-amt" style="color:${r.status==='paid'?'var(--teal)':'var(--text)'}">${fm(r.amount)}</div><span class="bdg bdg-${r.status==='paid'?'teal':r.status==='overdue'?'rose':'gold'}">${r.status}</span></div>
+    </div>`).join(''):`<div class="empty"><div class="empty-e">💰</div><p>No rent records yet</p></div>`;
+  const rs=document.getElementById('lt-rent-sum');
+  rs.style.display=S.ltRent.filter(r=>r.status==='paid').length?'flex':'none';
+  document.getElementById('lt-rent-total').textContent=fm(S.ltRent.filter(r=>r.status==='paid').reduce((s,r)=>s+r.amount,0));
+
+  // PM card
+  document.getElementById('lt-pm-card').innerHTML=`
+    <div class="pm-detail">
+      <div class="pm-detail-header">
+        <div class="pm-avatar" style="background:rgba(46,207,168,.1)">🤝</div>
+        <div><div class="pm-company">${S.lt.pm.name}</div><div class="pm-role">Long-Term Property Manager</div></div>
+      </div>
+      <div class="pm-detail-row"><div class="pm-detail-key">Contact</div><div class="pm-detail-val">${S.lt.pm.contact}</div></div>
+      <div class="pm-detail-row"><div class="pm-detail-key">Phone</div><div class="pm-detail-val">${S.lt.pm.phone}</div></div>
+      <div class="pm-detail-row"><div class="pm-detail-key">Email</div><div class="pm-detail-val">${S.lt.pm.email}</div></div>
+      <div class="pm-detail-row"><div class="pm-detail-key">Weekly fee</div><div class="pm-detail-val" style="color:var(--rose)">${fm(S.lt.pm.weeklyFee)}/week</div></div>
+      <div class="pm-contact-btns">
+        <a class="pm-btn" href="tel:${S.lt.pm.phone}">📞 Call</a>
+        <a class="pm-btn" href="sms:${S.lt.pm.phone}">💬 SMS</a>
+        <a class="pm-btn" href="mailto:${S.lt.pm.email}">✉️ Email</a>
+        <button class="pm-btn" onclick="openCompose('lt-pm')">✏️ Write</button>
+      </div>
+    </div>`;
+
+  // PM fees list
+  document.getElementById('lt-pm-fees-list').innerHTML=S.ltPmFees.length?S.ltPmFees.slice().reverse().map(f=>{
+    const typeIcon={weekly:'🤝',inspection:'🔍',letting:'🔑',other:'📦'}[f.type]||'📦';
+    return `<div class="li">
+      <div class="li-icon" style="background:rgba(232,83,75,.08)">${typeIcon}</div>
+      <div class="li-body"><div class="li-title">${f.desc}</div><div class="li-sub"><span class="bdg bdg-muted">${f.type}</span></div></div>
+      <div class="li-right"><div class="li-amt" style="color:var(--rose)">${fm(f.amount)}</div><div class="li-date">${fd(f.date)}</div></div>
+    </div>`;
+  }).join(''):`<div class="empty"><div class="empty-e">🤝</div><p>No fees logged yet</p></div>`;
+  const ps=document.getElementById('lt-pm-sum');
+  ps.style.display=S.ltPmFees.length?'flex':'none';
+  document.getElementById('lt-pm-total').textContent=fm(S.ltPmFees.reduce((s,f)=>s+f.amount,0));
+
+  // Inspections
+  const sorted=S.ltInspections.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('lt-insp-list').innerHTML=sorted.length?sorted.map(i=>{
+    const days=daysUntil(i.date);
+    const upcoming=i.status==='upcoming';
+    const typeLabel={routine:'Routine',entry:'Entry',exit:'Exit',maintenance:'Maintenance'}[i.type]||i.type;
+    return `<div class="insp-card">
+      <div class="insp-item">
+        <div class="insp-icon" style="background:${upcoming?'rgba(75,155,232,.1)':'rgba(46,207,168,.1)'}">${upcoming?'📅':'✅'}</div>
+        <div class="insp-body">
+          <div class="insp-title">${typeLabel} Inspection</div>
+          <div class="insp-sub">${fd(i.date)} ${upcoming&&days>=0?`· <span style="color:${days<=14?'var(--peach)':'var(--muted2)'}">${days}d away</span>`:''}</div>
+          ${i.notes?`<div style="font-size:11px;color:var(--muted2);margin-top:4px">${i.notes}</div>`:''}
+        </div>
+        <div class="insp-right">
+          ${i.fee?`<div class="insp-amt">${fm(i.fee)}</div>`:''}
+          <div class="insp-status"><span class="bdg bdg-${upcoming?'sky':'teal'}">${upcoming?'Upcoming':'Done'}</span></div>
+        </div>
+      </div>
+    </div>`;
+  }).join(''):`<div class="empty"><div class="empty-e">🔍</div><p>No inspections logged</p></div>`;
+}
+
+// ─── AIRBNB ───
+let bnbView='overview';
+function bnbTab(v,btn){
+  bnbView=v;
+  ['overview','income','expenses','pm','notes'].forEach(x=>document.getElementById('bnbv-'+x).style.display=x===v?'block':'none');
+  document.querySelectorAll('#page-bnb .tabs .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+}
+function renderBnb(){
+  document.getElementById('bnb-prop-name').textContent=S.bnb.name;
+  document.getElementById('bnb-prop-addr').textContent=S.bnb.address;
+
+  const totalGross=S.bnbIncome.reduce((s,i)=>s+i.gross,0);
+  const totalComm=S.bnbIncome.reduce((s,i)=>s+i.commission,0);
+  const totalNet=S.bnbIncome.reduce((s,i)=>s+i.net,0);
+  const totalExp=S.bnbExpenses.reduce((s,e)=>s+e.amount,0);
+  const netPos=totalNet-totalExp;
+
+  document.getElementById('bnb-stats').innerHTML=`
+    <div class="sc g"><div class="sc-lbl">Net Income</div><div class="sc-val">${fm(totalNet)}</div><div class="sc-sub">After ${S.bnb.pm.commissionPct}% commission</div></div>
+    <div class="sc r"><div class="sc-lbl">Expenses</div><div class="sc-val">${fm(totalExp)}</div><div class="sc-sub">Power, furnishing…</div></div>
+    <div class="sc ${netPos>=0?'t':'r'}" style="grid-column:span 2"><div class="sc-lbl">Net Position</div><div class="sc-val">${fm(Math.abs(netPos))}</div><div class="sc-sub">${netPos>=0?'Profit 📈':'Loss 📉'} · Gross ${fm(totalGross)} before commission</div></div>`;
+
+  // Income chart
+  const now=new Date();
+  const months=Array.from({length:6},(_,i)=>{const d=new Date(now.getFullYear(),now.getMonth()-5+i,1);return{key:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,lbl:d.toLocaleDateString('en-NZ',{month:'short'})};});
+  const maxI=Math.max(...months.map(m=>(S.bnbIncome.find(i=>i.month===m.key)||{net:0}).net),1);
+  document.getElementById('bnb-chart').innerHTML=months.map(m=>{
+    const inc=S.bnbIncome.find(i=>i.month===m.key)||{net:0};
+    return `<div class="mc-col"><div class="mc-bar" style="height:${Math.max(Math.round(inc.net/maxI*100),4)}%;background:${inc.net>0?'var(--gold)':'var(--s3)'}"></div><div class="mc-lbl">${m.lbl}</div></div>`;
+  }).join('');
+
+  // Fin summary
+  document.getElementById('bnb-fin').innerHTML=`
+    <div class="fin-row"><div class="fin-lbl">PM Commission</div><div class="fin-val" style="color:var(--rose)">${S.bnb.pm.commissionPct}% of gross</div></div>
+    <div class="fin-row"><div class="fin-lbl">Total commission paid</div><div class="fin-val" style="color:var(--rose)">${fm(totalComm)}</div></div>
+    <div class="fin-row"><div class="fin-lbl">Bookings via</div><div class="fin-val">Hostaway 🔗</div></div>
+    <div class="fin-row"><div class="fin-lbl">PM Company</div><div class="fin-val">${S.bnb.pm.name}</div></div>`;
+
+  // Income list
+  document.getElementById('bnb-income-list').innerHTML=S.bnbIncome.length?S.bnbIncome.slice().sort((a,b)=>b.month.localeCompare(a.month)).map(i=>`
+    <div class="income-card" style="margin:0;border-radius:0;border-left:none;border-right:none;border-top:none;border-bottom:1px solid var(--border);background:none;padding:12px 14px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--muted2)">${fmo(i.month)}</div>
+          <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:var(--teal);line-height:1.1">${fm(i.net)}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">${i.notes||''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;color:var(--muted)">Gross</div>
+          <div style="font-family:'Fraunces',serif;font-size:14px;color:var(--gold)">${fm(i.gross)}</div>
+          <div style="font-size:10px;color:var(--rose);margin-top:3px">− ${fm(i.commission)} comm.</div>
+        </div>
+      </div>
+    </div>`).join(''):`<div class="empty"><div class="empty-e">📥</div><p>No income recorded yet</p></div>`;
+  const is=document.getElementById('bnb-inc-sum');
+  is.style.display=S.bnbIncome.length?'flex':'none';
+  document.getElementById('bnb-inc-total').textContent=fm(totalNet);
+
+  // Expense cat breakdown
+  const CATS={power:{icon:'⚡',label:'Power',color:'var(--gold)'},furnishing:{icon:'🛋️',label:'Furnishing',color:'var(--lavender)'},repairs:{icon:'🔧',label:'Repairs',color:'var(--sky)'},cleaning:{icon:'🧹',label:'Cleaning',color:'var(--teal)'},supplies:{icon:'🛒',label:'Supplies',color:'var(--peach)'},other:{icon:'📦',label:'Other',color:'var(--muted2)'}};
+  const byCat={};S.bnbExpenses.forEach(e=>{byCat[e.cat]=(byCat[e.cat]||0)+e.amount;});
+  const grand=Object.values(byCat).reduce((s,v)=>s+v,0)||1;
+  document.getElementById('bnb-cat-chart').innerHTML=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([c,amt])=>{
+    const cc=CATS[c]||CATS.other;
+    return `<div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
+      <span style="font-size:14px;width:18px;text-align:center">${cc.icon}</span>
+      <div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>${cc.label}</span><span style="color:var(--muted2)">${fm(amt)}</span></div>
+      <div class="prog"><div class="prog-bar" style="width:${Math.round(amt/grand*100)}%;background:${cc.color}"></div></div></div>
+    </div>`;
+  }).join('')||`<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px">No expenses yet</div>`;
+
+  document.getElementById('bnb-exp-list').innerHTML=S.bnbExpenses.length?S.bnbExpenses.slice().reverse().map(e=>{
+    const cc=(CATS||{power:{icon:'⚡'},furnishing:{icon:'🛋️'},repairs:{icon:'🔧'},cleaning:{icon:'🧹'},supplies:{icon:'🛒'},other:{icon:'📦'}})[e.cat]||{icon:'📦'};
+    return `<div class="li">
+      <div class="li-icon" style="background:rgba(232,83,75,.08)">${cc.icon}</div>
+      <div class="li-body"><div class="li-title">${e.desc}</div><div class="li-sub">${e.cat}${e.file?` <span class="bdg bdg-sky">📎</span>`:''}</div></div>
+      <div class="li-right"><div class="li-amt" style="color:var(--rose)">${fm(e.amount)}</div><div class="li-date">${fd(e.date)}</div></div>
+    </div>`;
+  }).join(''):`<div class="empty"><div class="empty-e">💸</div><p>No expenses logged</p></div>`;
+  const es=document.getElementById('bnb-exp-sum');
+  es.style.display=S.bnbExpenses.length?'flex':'none';
+  document.getElementById('bnb-exp-total').textContent=fm(totalExp);
+
+  // PM card
+  document.getElementById('bnb-pm-card').innerHTML=`
+    <div class="pm-detail">
+      <div class="pm-detail-header">
+        <div class="pm-avatar" style="background:rgba(232,184,75,.1)">🏨</div>
+        <div><div class="pm-company">${S.bnb.pm.name}</div><div class="pm-role">Airbnb Property Manager · Hostaway</div></div>
+      </div>
+      <div class="pm-detail-row"><div class="pm-detail-key">Contact</div><div class="pm-detail-val">${S.bnb.pm.contact}</div></div>
+      <div class="pm-detail-row"><div class="pm-detail-key">Phone</div><div class="pm-detail-val">${S.bnb.pm.phone}</div></div>
+      <div class="pm-detail-row"><div class="pm-detail-key">Email</div><div class="pm-detail-val">${S.bnb.pm.email}</div></div>
+      <div class="pm-detail-row"><div class="pm-detail-key">Commission</div><div class="pm-detail-val" style="color:var(--rose)">${S.bnb.pm.commissionPct}% of gross revenue</div></div>
+      <div class="pm-detail-row"><div class="pm-detail-key">Payout day</div><div class="pm-detail-val">5th of each month</div></div>
+      <div class="pm-contact-btns">
+        <a class="pm-btn" href="tel:${S.bnb.pm.phone}">📞 Call</a>
+        <a class="pm-btn" href="sms:${S.bnb.pm.phone}">💬 SMS</a>
+        <a class="pm-btn" href="mailto:${S.bnb.pm.email}">✉️ Email</a>
+        <button class="pm-btn" onclick="openCompose('bnb-pm')">✏️ Write</button>
+      </div>
+    </div>`;
+
+  // Notes
+  document.getElementById('bnb-notes-list').innerHTML=S.bnbNotes.length?S.bnbNotes.slice().reverse().map(n=>`
+    <div class="note-item">
+      <div class="note-header"><div class="note-title">${n.title}</div><div class="note-date">${fd(n.date)}</div></div>
+      <div class="note-body">${n.body}</div>
+      ${n.file?`<div style="margin-top:7px"><span class="bdg bdg-sky">📎 ${n.file}</span></div>`:''}
+    </div>`).join(''):`<div class="empty"><div class="empty-e">📝</div><p>No notes yet</p></div>`;
+}
+
+// ─── COMMS ───
+let commsView='contacts';
+function commsTab(v,btn){
+  commsView=v;
+  ['contacts','templates','log'].forEach(x=>document.getElementById('cv-'+x).style.display=x===v?'block':'none');
+  document.querySelectorAll('#page-comms .tabs .tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
+}
+function renderComms(){
+  const contacts=[
+    {name:S.lt.tenant,role:`Tenant · ${S.lt.name}`,phone:S.lt.tenantPhone,email:S.lt.tenantEmail,color:'#2ecfa8',via:'tenant-lt'},
+    {name:S.lt.pm.contact,role:`PM · ${S.lt.pm.name}`,phone:S.lt.pm.phone,email:S.lt.pm.email,color:'#4b9be8',via:'pm-lt'},
+    {name:S.bnb.pm.contact,role:`PM · ${S.bnb.pm.name}`,phone:S.bnb.pm.phone,email:S.bnb.pm.email,color:'#e8b84b',via:'pm-bnb'}
+  ];
+  document.getElementById('contacts-list').innerHTML=contacts.map(c=>{
+    const ini=c.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+    return `<div class="contact-row">
+      <div class="avatar" style="background:${c.color}18;color:${c.color}">${ini}</div>
+      <div class="contact-info"><div class="contact-name">${c.name}</div><div class="contact-role">${c.role}</div></div>
+      <div class="c-btns">
+        <a class="c-btn" href="sms:${c.phone}">💬</a>
+        <a class="c-btn" href="https://wa.me/${c.phone.replace(/\D/g,'')}" target="_blank">🟢</a>
+        <a class="c-btn" href="mailto:${c.email}">✉️</a>
+        <button class="c-btn" onclick='openComposeWith(${JSON.stringify(c)})'>✏️</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const tmpls=[
+    {t:'Rent Confirmation',b:'Hi {name}, this is to confirm we have received your rent payment for {month}. Thank you.'},
+    {t:'Rent Reminder',b:'Hi {name}, just a reminder that rent is due on the 1st. Please ensure payment is made on time. Thank you.'},
+    {t:'Inspection Notice',b:'Hi {name}, we will be conducting a routine inspection at {property} on [DATE] between [TIME]. Please contact us if this is inconvenient.'},
+    {t:'PM – Monthly Statement',b:'Hi {name}, please could you send through the monthly income statement for {month} when it is ready? Thank you.'},
+    {t:'PM – Maintenance Query',b:'Hi {name}, could you please provide an update on the maintenance issue at {property}? We would appreciate a status update. Thank you.'},
+    {t:'PM – Commission Query',b:'Hi {name}, I wanted to confirm the commission calculation for {month}. Could you provide a breakdown with the statement? Thank you.'},
+  ];
+  document.getElementById('tmpl-list').innerHTML=tmpls.map(tmpl=>`
+    <div class="tmpl" onclick="openTemplate('${tmpl.t.replace(/'/g,"\\'")}','${tmpl.b.replace(/'/g,"\\'")}')">
+      <div class="tmpl-title">${tmpl.t}</div>
+      <div class="tmpl-prev">${tmpl.b.slice(0,80)}…</div>
+    </div>`).join('');
+
+  document.getElementById('msg-log').innerHTML=S.msgLog.length?S.msgLog.slice().reverse().map(m=>{
+    const vi={sms:'💬',whatsapp:'🟢',email:'✉️'}[m.via]||'📨';
+    return `<div class="msg-item"><div class="msg-head"><div class="msg-who">${vi} ${m.to}</div><div class="msg-when">${m.when}</div></div><div class="msg-body">${m.msg}</div></div>`;
+  }).join(''):`<div class="empty"><div class="empty-e">💬</div><p>No messages logged yet</p></div>`;
+}
+
+let activeContact2=null;
+function openCompose(key){
+  if(key==='lt-pm'){activeContact2={name:S.lt.pm.contact,phone:S.lt.pm.phone,email:S.lt.pm.email,prop:S.lt.name};}
+  else if(key==='bnb-pm'){activeContact2={name:S.bnb.pm.contact,phone:S.bnb.pm.phone,email:S.bnb.pm.email,prop:S.bnb.name};}
+  document.getElementById('comms-modal-title').textContent='Message '+activeContact2.name;
+  document.getElementById('cm-to').value=activeContact2.name+' ('+activeContact2.phone+')';
+  document.getElementById('cm-msg').value='';
+  refreshCommsLinks();
+  document.getElementById('ov-comms').classList.add('open');
+}
+function openComposeWith(c){
+  activeContact2={name:c.name,phone:c.phone,email:c.email,prop:''};
+  document.getElementById('comms-modal-title').textContent='Message '+c.name;
+  document.getElementById('cm-to').value=c.name+' ('+c.phone+')';
+  document.getElementById('cm-msg').value='';
+  refreshCommsLinks();
+  document.getElementById('ov-comms').classList.add('open');
+}
+function openTemplate(title,body){
+  const c=activeContact2||{name:S.lt.pm.contact,phone:S.lt.pm.phone,email:S.lt.pm.email,prop:S.lt.name};
+  activeContact2=c;
+  const now=new Date();
+  const mo=now.toLocaleDateString('en-NZ',{month:'long',year:'numeric'});
+  const msg=body.replace('{name}',c.name.split(' ')[0]).replace('{month}',mo).replace('{property}',c.prop||S.lt.name);
+  document.getElementById('comms-modal-title').textContent=title;
+  document.getElementById('cm-to').value=c.name+' ('+c.phone+')';
+  document.getElementById('cm-msg').value=msg;
+  refreshCommsLinks();
+  document.getElementById('ov-comms').classList.add('open');
+}
+function refreshCommsLinks(){
+  if(!activeContact2)return;
+  const msg=encodeURIComponent(document.getElementById('cm-msg').value||'');
+  const phone=activeContact2.phone.replace(/\D/g,'');
+  document.getElementById('cm-sms').href=`sms:${activeContact2.phone}?body=${msg}`;
+  document.getElementById('cm-wa').href=`https://wa.me/${phone}?text=${msg}`;
+  document.getElementById('cm-email').href=`mailto:${activeContact2.email}?body=${msg}`;
+}
+function logMsg(via){
+  const msg=document.getElementById('cm-msg').value;
+  if(!msg||!activeContact2)return;
+  S.msgLog.push({id:nid(S.msgLog),to:activeContact2.name,msg,when:new Date().toLocaleString('en-NZ').slice(0,16),via});
+  save();
+}
+
+// ══════════════════════════════════════
+//  MODAL / FORMS
+// ══════════════════════════════════════
+function openFab(){setForm(null);document.getElementById('ov-add').classList.add('open');}
+function closeOv(e,id){if(!e||e.target===document.getElementById(id))document.getElementById(id).classList.remove('open');}
+const FORMS=['add-types','form-lt-rent','form-lt-pmfee','form-lt-insp','form-bnb-income','form-bnb-expense','form-bnb-note','form-msg'];
+function setForm(type){
+  FORMS.forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById(type?'form-'+type:'add-types').style.display='block';
+  if(type){
+    const ltr=document.getElementById('ltr-month');if(ltr)ltr.value=new Date().toISOString().slice(0,7);
+    const bnbi=document.getElementById('bnbi-month');if(bnbi)bnbi.value=new Date().toISOString().slice(0,7);
+    ['ltf-date','lti-date','bnbe-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=td();});
+  }
+  if(type==='msg'){populateMsgContacts();}
+}
+function populateMsgContacts(){
+  const sel=document.getElementById('fmsg-contact');
+  sel.innerHTML=`<option value="">Select contact…</option>
+    <option value="tenant-lt">${S.lt.tenant} (Tenant)</option>
+    <option value="pm-lt">${S.lt.pm.contact} (LT PM)</option>
+    <option value="pm-bnb">${S.bnb.pm.contact} (Airbnb PM)</option>`;
+  sel.onchange=refreshMsgLinks;
+  document.getElementById('fmsg-body').oninput=refreshMsgLinks;
+}
+function refreshMsgLinks(){
+  const v=document.getElementById('fmsg-contact')?.value;
+  let c;
+  if(v==='tenant-lt')c={phone:S.lt.tenantPhone,email:S.lt.tenantEmail,name:S.lt.tenant};
+  else if(v==='pm-lt')c={phone:S.lt.pm.phone,email:S.lt.pm.email,name:S.lt.pm.contact};
+  else if(v==='pm-bnb')c={phone:S.bnb.pm.phone,email:S.bnb.pm.email,name:S.bnb.pm.contact};
+  if(!c)return;
+  const msg=encodeURIComponent(document.getElementById('fmsg-body')?.value||'');
+  const phone=c.phone.replace(/\D/g,'');
+  document.getElementById('fmsg-sms').href=`sms:${c.phone}?body=${msg}`;
+  document.getElementById('fmsg-wa').href=`https://wa.me/${phone}?text=${msg}`;
+  document.getElementById('fmsg-email').href=`mailto:${c.email}?body=${msg}`;
+  ['fmsg-sms','fmsg-wa','fmsg-email'].forEach((id,i)=>{
+    document.getElementById(id).onclick=()=>{
+      const via=['sms','whatsapp','email'][i];
+      const raw=document.getElementById('fmsg-body').value;
+      if(raw&&c){S.msgLog.push({id:nid(S.msgLog),to:c.name,msg:raw,when:new Date().toLocaleString('en-NZ').slice(0,16),via});save();}
+    };
+  });
+}
+function calcNet(){
+  const g=parseFloat(document.getElementById('bnbi-gross').value)||0;
+  const c=parseFloat(document.getElementById('bnbi-commission').value)||0;
+  document.getElementById('bnbi-net').value=(g-c)||'';
+}
+
+// SAVES
+function saveLtRent(){
+  const month=document.getElementById('ltr-month').value;
+  const amount=parseFloat(document.getElementById('ltr-amt').value)||0;
+  if(!month||!amount){alert('Please enter month and amount');return;}
+  S.ltRent.push({id:nid(S.ltRent),month,amount,status:document.getElementById('ltr-status').value,notes:document.getElementById('ltr-notes').value.trim()});
+  save();closeOv(null,'ov-add');renderAll();
+}
+function saveLtPmFee(){
+  const desc=document.getElementById('ltf-desc').value.trim();
+  const amount=parseFloat(document.getElementById('ltf-amt').value)||0;
+  if(!desc||!amount){alert('Please fill in description and amount');return;}
+  S.ltPmFees.push({id:nid(S.ltPmFees),desc,amount,date:document.getElementById('ltf-date').value||td(),type:document.getElementById('ltf-type').value});
+  save();closeOv(null,'ov-add');renderAll();
+}
+function saveLtInsp(){
+  const date=document.getElementById('lti-date').value;
+  if(!date){alert('Please enter inspection date');return;}
+  S.ltInspections.push({id:nid(S.ltInspections),date,type:document.getElementById('lti-type').value,fee:parseFloat(document.getElementById('lti-fee').value)||0,status:document.getElementById('lti-status').value,notes:document.getElementById('lti-notes').value.trim()});
+  save();closeOv(null,'ov-add');renderAll();
+}
+function saveBnbIncome(){
+  const month=document.getElementById('bnbi-month').value;
+  const gross=parseFloat(document.getElementById('bnbi-gross').value)||0;
+  if(!month||!gross){alert('Please enter month and gross amount');return;}
+  const commission=parseFloat(document.getElementById('bnbi-commission').value)||0;
+  const net=parseFloat(document.getElementById('bnbi-net').value)||(gross-commission);
+  S.bnbIncome.push({id:nid(S.bnbIncome),month,gross,commission,net,notes:document.getElementById('bnbi-notes').value.trim()});
+  save();closeOv(null,'ov-add');renderAll();
+}
+let bnbFileName=null,noteFileName=null;
+function handleFile(e){const f=e.target.files[0];if(f){bnbFileName=f.name;document.getElementById('bnb-fname').textContent='📎 '+f.name;}}
+function handleNoteFile(e){const f=e.target.files[0];if(f){noteFileName=f.name;document.getElementById('note-fname').textContent='📎 '+f.name;}}
+function saveBnbExpense(){
+  const desc=document.getElementById('bnbe-desc').value.trim();
+  const amount=parseFloat(document.getElementById('bnbe-amt').value)||0;
+  if(!desc||!amount){alert('Please fill in description and amount');return;}
+  S.bnbExpenses.push({id:nid(S.bnbExpenses),desc,amount,cat:document.getElementById('bnbe-cat').value,date:document.getElementById('bnbe-date').value||td(),file:bnbFileName});
+  bnbFileName=null;save();closeOv(null,'ov-add');renderAll();
+}
+function saveBnbNote(){
+  const title=document.getElementById('bnbn-title').value.trim();
+  if(!title){alert('Please enter a title');return;}
+  S.bnbNotes.push({id:nid(S.bnbNotes),title,body:document.getElementById('bnbn-body').value.trim(),date:td(),file:noteFileName});
+  noteFileName=null;save();closeOv(null,'ov-add');renderAll();
+}
+
+// INIT
+renderAll();
+</script>
+</body>
+</html>
